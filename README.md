@@ -1,0 +1,1 @@
+#Digital Proof of Work
