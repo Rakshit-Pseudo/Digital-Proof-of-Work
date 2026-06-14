@@ -1,30 +1,30 @@
 const mongoose = require('mongoose');
 
-const fileSchema = new mongoose.Schema(
-  {
-    url: { type: String, required: true },
-    publicId: { type: String, required: true },
-    originalName: { type: String },
-    mimeType: { type: String },
-  },
-  { _id: false }
-);
-
 const projectSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true,
-    },
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true, trim: true },
-    description: { type: String, required: true, trim: true },
-    techStack: { type: [String], required: true, default: [] },
-    githubUrl: { type: String, trim: true, default: '' },
-    files: { type: [fileSchema], default: [] },
+    description: { type: String, required: true },
+    githubUrl: String,
+    liveUrl: String,
+    technologies: [{ type: String }],
+    skills: [{ type: String }],
+    summary: String,
+    aiAnalysis: { type: mongoose.Schema.Types.ObjectId, ref: 'GitHubAnalysis' },
+    images: [String],
+    verificationStatus: {
+      type: String,
+      enum: ['draft', 'pending', 'approved', 'rejected'],
+      default: 'draft',
+    },
+    submittedAt: Date,
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    feedback: String,
   },
   { timestamps: true }
 );
+
+projectSchema.index({ title: 'text', description: 'text', technologies: 'text' });
 
 module.exports = mongoose.model('Project', projectSchema);
