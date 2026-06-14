@@ -1,0 +1,14 @@
+{
+  "name": "dpow-backend",
+  "version": "1.0.0",
+  "description": "Digital Proof of Work - Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
