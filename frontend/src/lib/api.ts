@@ -1,106 +1,139 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { tokenStorage } from './auth-storage';
-import type { ApiResponse, AuthTokens, User } from '@/types';
+import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-export const api = axios.create({
-  baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
-});
+const api = axios.create({ baseURL: API_URL });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = tokenStorage.getAccessToken();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (err: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) prom.reject(error);
-    else prom.resolve(token!);
-  });
-  failedQueue = [];
-};
-
 api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes('/auth/refresh')) {
-        tokenStorage.clearTokens();
-        if (typeof window !== 'undefined') window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          return api(originalRequest);
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (!refreshToken) {
-        tokenStorage.clearTokens();
-        if (typeof window !== 'undefined') window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
-      try {
-        const { data } = await axios.post<
-          ApiResponse<{ user: User } & AuthTokens>
-        >(`${API_URL}/auth/refresh`, { refreshToken });
-
-        const { accessToken, refreshToken: newRefresh } = data.data!;
-        tokenStorage.setTokens(accessToken, newRefresh);
-        tokenStorage.setUser(data.data!.user);
-        processQueue(null, accessToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        tokenStorage.clearTokens();
-        if (typeof window !== 'undefined') window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
       }
     }
-
     return Promise.reject(error);
   }
 );
 
+export default api;
+export { api };
+
+export const authApi = {
+  register: (data: { name: string; email: string; password: string; role?: string }) =>
+    api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  me: () => api.get('/auth/me'),
+};
+
+export const usersApi = {
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (data: Record<string, unknown>) => api.put('/users/profile', data),
+  getDashboardStats: () => api.get('/users/dashboard/stats'),
+  getPortfolio: (id: string) => api.get(`/users/${id}/portfolio`),
+  aggregateSkills: () => api.post('/users/skills/aggregate'),
+};
+
+export const projectsApi = {
+  list: () => api.get('/projects'),
+  get: (id: string) => api.get(`/projects/${id}`),
+  create: (data: Record<string, unknown>) => api.post('/projects', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/projects/${id}`, data),
+  delete: (id: string) => api.delete(`/projects/${id}`),
+  submit: (id: string) => api.post(`/projects/${id}/submit`),
+  analyze: (id: string) => api.post(`/projects/${id}/analyze`),
+};
+
+export const certificatesApi = {
+  list: () => api.get('/certificates'),
+  create: (data: Record<string, unknown>) => api.post('/certificates', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/certificates/${id}`, data),
+  delete: (id: string) => api.delete(`/certificates/${id}`),
+  submit: (id: string) => api.post(`/certificates/${id}/submit`),
+};
+
+export const verificationsApi = {
+  getPending: () => api.get('/verifications/pending'),
+  getHistory: (params?: Record<string, string>) => api.get('/verifications/history', { params }),
+  review: (type: string, id: string, data: { status: string; feedback?: string }) =>
+    api.post(`/verifications/${type}/${id}/review`, data),
+  getStats: () => api.get('/verifications/stats'),
+};
+
+export const badgesApi = {
+  list: () => api.get('/badges'),
+  my: () => api.get('/badges/my'),
+  suggestions: () => api.get('/badges/suggestions'),
+  check: () => api.post('/badges/check'),
+};
+
+export const notificationsApi = {
+  list: (params?: Record<string, string>) => api.get('/notifications', { params }),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id: string) => api.patch(`/notifications/${id}/read`),
+  markAllRead: () => api.patch('/notifications/read-all'),
+  delete: (id: string) => api.delete(`/notifications/${id}`),
+};
+
+export const githubApi = {
+  analyze: (repoUrl: string, projectId?: string) =>
+    api.post('/github-analysis/analyze', { repoUrl, projectId }),
+  history: () => api.get('/github-analysis/history'),
+  get: (id: string) => api.get(`/github-analysis/${id}`),
+};
+
+export const searchApi = {
+  students: (params?: Record<string, string>) => api.get('/search/students', { params }),
+};
+
+export const recruiterApi = {
+  getSaved: () => api.get('/recruiter/saved'),
+  saveCandidate: (data: { studentId: string; notes?: string; tags?: string[] }) =>
+    api.post('/recruiter/saved', data),
+  removeSaved: (studentId: string) => api.delete(`/recruiter/saved/${studentId}`),
+  getDashboard: () => api.get('/recruiter/dashboard'),
+};
+
+export const adminApi = {
+  getAnalytics: () => api.get('/admin/analytics'),
+  getTimeseries: (days?: number) => api.get('/admin/analytics/timeseries', { params: { days } }),
+  getUsers: (params?: Record<string, string>) => api.get('/admin/users', { params }),
+  createUser: (data: Record<string, unknown>) => api.post('/admin/users', data),
+  updateUser: (id: string, data: Record<string, unknown>) => api.put(`/admin/users/${id}`, data),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  suspendUser: (id: string, suspended: boolean) =>
+    api.patch(`/admin/users/${id}/suspend`, { suspended }),
+  assignVerifier: (id: string) => api.post(`/admin/users/${id}/assign-verifier`),
+  assignRecruiter: (id: string) => api.post(`/admin/users/${id}/assign-recruiter`),
+  getAuditLogs: (params?: Record<string, string>) => api.get('/audit-logs', { params }),
+};
+
+export const reportsApi = {
+  downloadStudent: (studentId: string) =>
+    api.get(`/reports/student/${studentId}`, { responseType: 'blob' }),
+};
+
 export const getErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    const data = error.response?.data as ApiResponse<unknown>;
+    const data = error.response?.data as any;
     if (data?.errors?.length) {
-      return data.errors.map((e) => e.message).join(', ');
+      return data.errors.map((e: any) => e.message).join(', ');
     }
     return data?.message || error.message;
   }
+  if (error instanceof Error) {
+    return error.message;
+  }
   return 'An unexpected error occurred';
 };
+

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Bell, X, Check, Trash2 } from 'lucide-react';
 import { notificationsApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
-import { useSocket } from '@/lib/socket';
+import { getSocket } from '@/lib/socket';
 
 interface Notification {
   _id: string;
@@ -16,6 +16,7 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  const socket = getSocket();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -166,9 +167,8 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`group px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    !notification.read ? 'bg-indigo-50/40' : ''
-                  }`}
+                  className={`group px-4 py-3 hover:bg-gray-50 transition-colors ${!notification.read ? 'bg-indigo-50/40' : ''
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-lg flex-shrink-0 mt-0.5">

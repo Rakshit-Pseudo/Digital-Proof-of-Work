@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, X, LayoutDashboard, FolderOpen, Award, User, Clock, CheckCircle, XCircle, Search, Bookmark, Users, Activity, Settings, FileText, Github, Trophy, BarChart3, ScrollText } from 'lucide-react';
+import { LogOut, Menu, X, LayoutDashboard, FolderOpen, Award, User, Clock, CheckCircle, XCircle, Search, Bookmark, Users, Activity, Settings, FileText, Trophy, BarChart3, ScrollText } from 'lucide-react';
+import { Github } from '@/components/ui/icons';
 import { useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import NotificationBell from '@/components/notifications/NotificationBell';

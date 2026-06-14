@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Github, Sparkles, Code2, Zap, Star, History, ExternalLink, Award, FolderOpen, User, Trophy, BarChart3, Loader2 } from 'lucide-react';
+import { Sparkles, Code2, Zap, Star, History, ExternalLink, Award, FolderOpen, User, Trophy, BarChart3, Loader2 } from 'lucide-react';
+import { Github } from '@/components/ui/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';

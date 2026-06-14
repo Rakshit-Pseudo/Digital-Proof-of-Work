@@ -1,12 +1,113 @@
-export type Role = 'student' | 'verifier' | 'recruiter' | 'admin';
+export type UserRole = 'student' | 'verifier' | 'recruiter' | 'admin';
+
+export interface Profile {
+  _id: string;
+  user: string | User;
+  bio?: string;
+  headline?: string;
+  location?: string;
+  website?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  avatarUrl?: string;
+  skills: string[];
+  interests: string[];
+  profileCompletionPercentage: number;
+}
 
 export interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  role: Role;
-  isEmailVerified: boolean;
+  role: UserRole;
+  avatar?: string;
+  bio?: string;
+  skills?: string[];
+  education?: Education[];
+  githubUsername?: string;
+  linkedinUrl?: string;
+  badges?: Badge[];
+  profileCompletion?: number;
+  isSuspended?: boolean;
+}
+
+export interface Education {
+  institution: string;
+  degree: string;
+  field?: string;
+  startYear?: number;
+  endYear?: number;
+  current?: boolean;
+}
+
+export interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  githubUrl?: string;
+  liveUrl?: string;
+  techStack?: string[];
+  files?: { url: string }[];
+  skills?: string[];
+  summary?: string;
+  verificationStatus: 'draft' | 'pending' | 'approved' | 'rejected';
+  feedback?: string;
+  submittedAt?: string;
+  student?: User;
+}
+
+export interface Certificate {
+  _id: string;
+  title: string;
+  issuer: string;
+  issueDate: string;
+  expiryDate?: string;
+  fileUrl?: string;
+  file?: { url: string };
+  skills?: string[];
+  verificationStatus: 'draft' | 'pending' | 'approved' | 'rejected';
+  feedback?: string;
+  student?: User;
+}
+
+export interface Badge {
+  _id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  category?: string;
+}
+
+export interface Notification {
+  _id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
   createdAt: string;
+  data?: Record<string, unknown>;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages?: number;
+}
+
+export const ROLE_ROUTES: Record<UserRole, string> = {
+  student: '/dashboard/student',
+  verifier: '/dashboard/verifier',
+  recruiter: '/dashboard/recruiter',
+  admin: '/dashboard/admin',
+};
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  errors?: Array<{ field: string; message: string }>;
 }
 
 export interface AuthTokens {
@@ -14,73 +115,7 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
-export interface Education {
-  _id?: string;
-  institution: string;
-  degree: string;
-  fieldOfStudy?: string;
-  startYear: number;
-  endYear: number;
-}
-
-export interface Skill {
-  _id?: string;
-  name: string;
-  proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-}
-
-export interface Profile {
-  _id: string;
-  user: User | string;
-  headline: string;
-  bio: string;
-  avatarUrl: string;
-  education: Education[];
-  skills: Skill[];
-  profileCompletionPercentage: number;
-}
-
-export interface ProjectFile {
-  url: string;
-  publicId: string;
-  originalName?: string;
-  mimeType?: string;
-}
-
-export interface Project {
-  _id: string;
-  user: string;
-  title: string;
-  description: string;
-  techStack: string[];
-  githubUrl: string;
-  files: ProjectFile[];
-  createdAt: string;
-}
-
-export interface Certificate {
-  _id: string;
-  user: string;
-  title: string;
-  issuingOrganization: string;
-  issueDate: string;
-  expiryDate?: string;
-  file: ProjectFile;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errors?: { field: string; message: string }[];
-}
-
 export interface PaginatedProjects {
   projects: Project[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: Pagination;
 }

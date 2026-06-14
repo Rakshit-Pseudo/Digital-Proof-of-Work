@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 export default function CertificatesPage() {
   const queryClient = useQueryClient();
@@ -79,19 +80,24 @@ export default function CertificatesPage() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading certificates...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+        <p className="text-zinc-500 animate-pulse">Loading your certificates...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Certificates</h1>
-          <p className="text-zinc-500">Manage your verifiable credentials</p>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Certificates</h1>
+          <p className="text-zinc-500 dark:text-zinc-400">Manage your verifiable credentials and achievements</p>
         </div>
         {!isAdding && (
-          <Button onClick={() => setIsAdding(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => setIsAdding(true)} size="lg">
+            <Plus className="mr-2 h-5 w-5" />
             Add Certificate
           </Button>
         )}
@@ -157,51 +163,64 @@ export default function CertificatesPage() {
 
       {!certificates || certificates.length === 0 ? (
         !isAdding && (
-          <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
-            <Award className="mb-4 h-12 w-12 text-zinc-300" />
-            <CardTitle className="mb-2">No certificates yet</CardTitle>
-            <CardDescription className="mb-6">
-              Add certificates to showcase your skills and achievements.
+          <Card className="flex flex-col items-center justify-center p-16 text-center border-dashed border-2 bg-zinc-50/50 dark:bg-zinc-900/50">
+            <div className="w-20 h-20 bg-brand-100 dark:bg-brand-500/20 text-brand-600 rounded-full flex items-center justify-center mb-6">
+              <Award className="h-10 w-10" />
+            </div>
+            <CardTitle className="text-2xl mb-2">No certificates yet</CardTitle>
+            <CardDescription className="text-base max-w-sm mx-auto mb-8">
+              Add your verified certificates to showcase your skills and achievements to recruiters.
             </CardDescription>
-            <Button onClick={() => setIsAdding(true)}>Add Certificate</Button>
+            <Button size="lg" onClick={() => setIsAdding(true)}>Add Certificate</Button>
           </Card>
         )
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((cert: Certificate) => (
-            <Card key={cert._id} className="flex flex-col overflow-hidden">
-              <CardHeader>
-                <div className="mb-2 flex items-center gap-2 text-zinc-500">
-                  <Award className="h-5 w-5" />
-                  <span className="text-sm font-medium">{cert.issuingOrganization}</span>
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {certificates.map((cert: Certificate, index: number) => (
+            <Card key={cert._id} className={cn("flex flex-col overflow-hidden group", `stagger-${(index % 4) + 1}`)}>
+              <CardHeader className="bg-gradient-to-r from-brand-50/50 to-violet-50/50 dark:from-brand-950/20 dark:to-violet-950/20 border-b border-zinc-100 dark:border-zinc-800/60">
+                <div className="mb-3 flex items-center gap-2 text-brand-600 dark:text-brand-400">
+                  <div className="p-2 bg-brand-100 dark:bg-brand-900/50 rounded-lg">
+                    <Award className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-semibold uppercase tracking-wider">{cert.issuer || (cert as any).issuingOrganization}</span>
                 </div>
-                <CardTitle className="line-clamp-2 text-lg">{cert.title}</CardTitle>
+                <CardTitle className="line-clamp-2 text-xl group-hover:text-brand-600 transition-colors">{cert.title}</CardTitle>
               </CardHeader>
-              <CardContent className="flex-1">
-                <div className="text-sm text-zinc-600">
-                  <p>Issued: {new Date(cert.issueDate).toLocaleDateString()}</p>
+              <CardContent className="flex-1 pt-6">
+                <div className="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
+                  <div className="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800">
+                    <span className="font-medium text-zinc-900 dark:text-zinc-300">Issued</span>
+                    <span>{new Date(cert.issueDate).toLocaleDateString()}</span>
+                  </div>
                   {cert.expiryDate && (
-                    <p>Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
+                    <div className="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800">
+                      <span className="font-medium text-zinc-900 dark:text-zinc-300">Expires</span>
+                      <span>{new Date(cert.expiryDate).toLocaleDateString()}</span>
+                    </div>
                   )}
                 </div>
                 {cert.file && (
-                  <div className="mt-4">
+                  <div className="mt-6">
                     <a 
                       href={cert.file.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-blue-600 hover:underline"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-500 transition-colors"
                     >
-                      View Credential
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View Credential Document
                     </a>
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="border-t p-4">
+              <CardFooter className="border-t border-zinc-100 dark:border-zinc-800/60 p-4 bg-zinc-50/50 dark:bg-zinc-900/20">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="w-full text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                   onClick={() => {
                     if (window.confirm('Are you sure you want to delete this certificate?')) {
                       deleteCertificate.mutate(cert._id);
@@ -210,7 +229,7 @@ export default function CertificatesPage() {
                   disabled={deleteCertificate.isPending}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  Delete Certificate
                 </Button>
               </CardFooter>
             </Card>

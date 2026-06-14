@@ -1,6 +1,7 @@
 'use client';
 
-import { FolderOpen, Award, User, Github, Trophy, TrendingUp, CheckCircle, Clock, XCircle, Zap, BarChart3, ScrollText } from 'lucide-react';
+import { FolderOpen, Award, User, Trophy, TrendingUp, CheckCircle, Clock, XCircle, Zap, BarChart3, ScrollText } from 'lucide-react';
+import { Github } from '@/components/ui/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useEffect, useState } from 'react';

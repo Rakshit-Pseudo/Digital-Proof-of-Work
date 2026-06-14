@@ -44,7 +44,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
       reset({
         title: project.title,
         description: project.description,
-        techStack: project.techStack.join(', '),
+        techStack: (project.techStack || []).join(', '),
         githubUrl: project.githubUrl || '',
       });
     }
@@ -96,7 +96,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && <Alert variant="destructive">{error}</Alert>}
-            
+
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input id="title" {...register('title')} />
@@ -128,10 +128,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                   <img src={project.files[0].url} alt="Current project" className="h-full w-full object-cover" />
                 </div>
               )}
-              <Input 
-                id="projectFiles" 
-                type="file" 
-                accept="image/*" 
+              <Input
+                id="projectFiles"
+                type="file"
+                accept="image/*"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
             </div>

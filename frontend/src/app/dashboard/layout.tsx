@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Menu, LogOut, Home, Users, BarChart3, Settings, Bell } from 'lucide-react';
 import Link from 'next/link';
-import { useSocket } from '@/lib/socket';
+import { getSocket } from '@/lib/socket';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, logout, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const socket = useSocket();
+  const socket = getSocket();
 
   useEffect(() => {
     if (!loading && !user) {
